@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Hardhat files
+cache/
+artifacts/
+typechain/
+typechain-types/
+
+# Build files
+dist/
+build/
+frontend/build/
+
+# Deployment info (contains contract addresses)
+deployment-info.json
+
+# Test coverage
+coverage/
+coverage.json
+.coverage_contracts/
+.coverage_artifacts/
+.coverage_cache/
+
+# Hardhat logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop. ini
+
+# IDE files
+.vscode/
+.idea/
+*. swp
+*.swo
+*~
+
+# Package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Misc
+*.tgz
+.npmrc
