@@ -25,8 +25,8 @@ function App() {
     program: '',
     courses: [{
       courseCode: '',
-      courseName: '',
-      credits:  '',
+      courseName:  '',
+      credits: '',
       grade: '',
       year: '',
       semester: ''
@@ -37,10 +37,6 @@ function App() {
   const [searchTranscriptId, setSearchTranscriptId] = useState('');
   const [transcriptData, setTranscriptData] = useState(null);
   const [studentTranscripts, setStudentTranscripts] = useState([]);
-
-  useEffect(() => {
-    checkIfWalletIsConnected();
-  }, []);
 
   const checkIfWalletIsConnected = async () => {
     try {
@@ -61,6 +57,10 @@ function App() {
       console.error(error);
     }
   };
+
+  useEffect(() => {
+    checkIfWalletIsConnected();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const connectWallet = async () => {
     try {
@@ -89,35 +89,49 @@ function App() {
         signer
       );
       
+      console.log("✅ Contract initialized:", CONTRACT_ADDRESS);
+      console.log("✅ Connected account:", account);
+      
       setContract(academicContract);
       await checkUserRole(academicContract, account);
     } catch (error) {
-      console.error("Error setting up contract:", error);
+      console.error("❌ Error setting up contract:", error);
     }
   };
 
   const checkUserRole = async (contractInstance, account) => {
     try {
-      const ADMIN_ROLE = await contractInstance. ADMIN_ROLE();
+      console.log("🔍 Checking role for account:", account);
+      
+      const ADMIN_ROLE = await contractInstance.ADMIN_ROLE();
       const INSTITUTION_ROLE = await contractInstance.INSTITUTION_ROLE();
       
+      console.log("📋 ADMIN_ROLE:", ADMIN_ROLE);
+      console.log("📋 INSTITUTION_ROLE:", INSTITUTION_ROLE);
+      
       const isAdmin = await contractInstance.hasRole(ADMIN_ROLE, account);
-      const isInstitution = await contractInstance. hasRole(INSTITUTION_ROLE, account);
+      const isInstitution = await contractInstance.hasRole(INSTITUTION_ROLE, account);
+      
+      console.log("✅ Is Admin?", isAdmin);
+      console.log("✅ Is Institution?", isInstitution);
       
       if (isAdmin) {
+        console.log("🎯 Setting role to ADMIN");
         setUserRole('ADMIN');
       } else if (isInstitution) {
+        console.log("🎯 Setting role to INSTITUTION");
         setUserRole('INSTITUTION');
       } else {
+        console.log("🎯 Setting role to STUDENT");
         setUserRole('STUDENT');
       }
     } catch (error) {
-      console.error("Error checking role:", error);
+      console.error("❌ Error checking role:", error);
+      console.error("Error details:", error.message);
       setUserRole('STUDENT');
     }
   };
 
-  // Register Institution
   const registerInstitution = async (e) => {
     e.preventDefault();
     if (!contract) return;
@@ -132,7 +146,7 @@ function App() {
       
       await tx.wait();
       alert("Institution registered successfully!");
-      setInstitutionForm({ name: '', registrationNumber: '', address: '' });
+      setInstitutionForm({ name:  '', registrationNumber: '', address:  '' });
     } catch (error) {
       console.error("Error registering institution:", error);
       alert("Error:  " + error.message);
@@ -141,7 +155,6 @@ function App() {
     }
   };
 
-  // Issue Transcript
   const issueTranscript = async (e) => {
     e.preventDefault();
     if (!contract) return;
@@ -170,17 +183,16 @@ function App() {
       await tx.wait();
       alert("Transcript issued successfully!");
       
-      // Reset form
       setTranscriptForm({
         studentAddress: '',
         studentId: '',
-        studentName: '',
+        studentName:  '',
         program: '',
         courses: [{
-          courseCode: '',
+          courseCode:  '',
           courseName: '',
           credits: '',
-          grade: '',
+          grade:  '',
           year: '',
           semester: ''
         }],
@@ -188,13 +200,12 @@ function App() {
       });
     } catch (error) {
       console.error("Error issuing transcript:", error);
-      alert("Error: " + error.message);
+      alert("Error: " + error. message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Add Course to Form
   const addCourse = () => {
     setTranscriptForm({
       ... transcriptForm,
@@ -209,20 +220,17 @@ function App() {
     });
   };
 
-  // Remove Course from Form
   const removeCourse = (index) => {
     const newCourses = transcriptForm.courses.filter((_, i) => i !== index);
     setTranscriptForm({ ...transcriptForm, courses: newCourses });
   };
 
-  // Update Course in Form
   const updateCourse = (index, field, value) => {
-    const newCourses = [...transcriptForm.courses];
+    const newCourses = [... transcriptForm.courses];
     newCourses[index][field] = value;
     setTranscriptForm({ ...transcriptForm, courses: newCourses });
   };
 
-  // Search Transcript
   const searchTranscript = async () => {
     if (!contract || !searchTranscriptId) return;
 
@@ -239,7 +247,7 @@ function App() {
         studentId: transcript.studentId,
         studentName: transcript.studentName,
         program: transcript. program,
-        issuedAt: new Date(transcript.issuedAt. toNumber() * 1000).toLocaleDateString(),
+        issuedAt: new Date(transcript.issuedAt.toNumber() * 1000).toLocaleDateString(),
         isRevoked: transcript.isRevoked,
         ipfsHash: transcript.ipfsHash,
         courses: courses.map(c => ({
@@ -248,7 +256,7 @@ function App() {
           credits: c.credits,
           grade: c.grade,
           year: c.year. toString(),
-          semester: c. semester.toString()
+          semester: c. semester. toString()
         }))
       });
     } catch (error) {
@@ -260,7 +268,6 @@ function App() {
     }
   };
 
-  // Get Student Transcripts
   const getMyTranscripts = async () => {
     if (!contract || !currentAccount) return;
 
@@ -295,17 +302,17 @@ function App() {
     }
   };
 
-  // Verify Transcript
   const verifyTranscript = async (transcriptId) => {
     if (!contract) return;
 
     try {
       setLoading(true);
-      const isValid = await contract.verifyTranscript(transcriptId);
-      alert(isValid ? "✅ Transcript is valid and verified!" : "❌ Transcript verification failed");
+      const tx = await contract.verifyTranscript(transcriptId);
+      await tx.wait();
+      alert("✅ Transcript is valid and verified!");
     } catch (error) {
       console.error("Error verifying transcript:", error);
-      alert("Error:  " + error.message);
+      alert("Error: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -352,9 +359,9 @@ function App() {
                   />
                   <input
                     type="text"
-                    placeholder="Institution Address (0x... )"
+                    placeholder="Institution Address (0x...)"
                     value={institutionForm.address}
-                    onChange={(e) => setInstitutionForm({...institutionForm, address: e.target.value})}
+                    onChange={(e) => setInstitutionForm({...institutionForm, address: e.target. value})}
                     required
                   />
                   <button type="submit" disabled={loading}>
@@ -404,7 +411,7 @@ function App() {
                         type="text"
                         placeholder="Course Code"
                         value={course.courseCode}
-                        onChange={(e) => updateCourse(index, 'courseCode', e.target.value)}
+                        onChange={(e) => updateCourse(index, 'courseCode', e.target. value)}
                         required
                       />
                       <input
@@ -531,7 +538,7 @@ function App() {
             <section className="section">
               <h2>My Transcripts</h2>
               <button onClick={getMyTranscripts} disabled={loading}>
-                {loading ?  'Loading...' : 'Get My Transcripts'}
+                {loading ? 'Loading...' : 'Get My Transcripts'}
               </button>
 
               {studentTranscripts.length > 0 && (
@@ -542,8 +549,8 @@ function App() {
                       <p><strong>Institution:</strong> {transcript.institutionName}</p>
                       <p><strong>Program:</strong> {transcript.program}</p>
                       <p><strong>Courses:</strong> {transcript.coursesCount}</p>
-                      <p><strong>Issued: </strong> {transcript.issuedAt}</p>
-                      <p><strong>Status:</strong> {transcript.isRevoked ? '❌ REVOKED' :  '✅ Valid'}</p>
+                      <p><strong>Issued:</strong> {transcript.issuedAt}</p>
+                      <p><strong>Status:</strong> {transcript.isRevoked ? '❌ REVOKED' : '✅ Valid'}</p>
                       <button onClick={() => {
                         setSearchTranscriptId(transcript.id);
                         searchTranscript();
